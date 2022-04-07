@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            image-rendering: pixelated;
+        }
+
+        .pole {
+            border: solid black 1px;
+            width: 50px;
+            height: 50px;
+            float: left;
+            position: relative;
+            cursor: pointer;
+            font-size: 40px;
+            line-height: 125%;
+            text-align: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        #container {
+            border: solid black 1px;
+            margin: auto;
+            margin-top: 120px;
+        }
+
+        #menu {
+            position: absolute;
+            border-bottom: solid grey 2px;
+            height: 60px;
+            text-align: center;
+            margin: auto;
+            top: 10px;
+            left: 0;
+            font-size: 30px;
+            width: 100%;
+        }
+
+        .input {
+            margin: 10px;
+            font-size: 30px;
+            border: none;
+            outline: none;
+            width: 80px;
+        }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            opacity: 1;
+
+        }
+
+        #koniec {
+            border: solid grey 2px;
+            text-align: center;
+            margin: auto;
+            margin-top: 10px;
+            font-size: 30px;
+            padding: 5px 10px 10px 10px;
+            width: min-content;
+        }
+
+        #timer {
+            display: inline;
+        }
+
+        #licznik {
+            display: inline;
+        }
+
+        #start {
+            padding: 3px 10px 3px 10px;
+            background-color: rgb(207, 207, 207);
+            display: inline;
+            cursor: pointer;
+            transition: 0.5s;
+        }
+
+        #start:hover {
+            background-color: rgb(155, 155, 155);
+        }
+
+        image {
+            filter: blur(10);
+        }
+
+        #tabela {
+            border: solid grey 1px;
+            width: 252px;
+            height: 572px;
+            margin: auto;
+            text-align: center;
+            font-size: 40px;
+            line-height: 65%;
+            position: absolute;
+            top: 80px;
+            right: 10px;
+        }
+
+        .record {
+            border: solid grey 1px;
+            width: 250px;
+            height: 50px;
+            margin: auto;
+            text-align: center;
+            font-size: 40px;
+            line-height: 120%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="menu">
+        <div id="start">start</div>
+        <label>Szerokość: </label>
+        <input class="input" type="number" id="InputSzerokosc" name="InputSzerokosc" min="0" max="100" value="10">
+        <label>Wysokość: </label>
+        <input class="input" type="number" id="InputWysokosc" name="InputWysokosc" min="0" max="100" value="10">
+        <label>Ilość bomb: </label>
+        <input class="input" type="number" id="InputIloscBomb" name="InputIloscBomb" min="0" max="100" value="10">
+        <div id="licznik">pozostało bomb: </div>
+        <div id="timer">Czas: 0s</div>
+    </div>
+    <div id="main"></div>
+    <script>
+        let saper = {
+            startButton: document.getElementById("start"),
+            inputSzerokosc: document.getElementById("InputSzerokosc"),
+            inputWysokosc: document.getElementById("InputWysokosc"),
+            inputIleBomb: document.getElementById("InputIloscBomb"),
+            started: false,
+            stoped: false,
+            plansza: [],
+            score: 0,
+            clockStarted: false,
+            startObject: function () {
+                saper.startButton.onclick = function () {
+
+                    if (saper.started == true) {
+                        tabela.remove()
+                        container.remove()
+                        if (saper.clockStarted == true)
+                            clearInterval(clock);
+                        document.getElementById("timer").innerHTML = "czas: 0s"
+                    }
+                    if (saper.stoped == true) {
+                        document.getElementById("koniec").remove()
+                        saper.stoped = false
+                    }
+                    saper.startButton.innerHTML = "restart"
+                    szerokosc = saper.inputSzerokosc.value
+                    wysokosc = saper.inputWysokosc.value
+                    ileBomb = saper.inputIleBomb.value
+                    showToWin = (szerokosc * wysokosc) - ileBomb
+                    ileBombZostalo = ileBomb
+                    document.getElementById("licznik").innerHTML = "pozostało bomb: " + ileBombZostalo
+                    if (showToWin >= 9) {
+                        losed = false
+                        showed = 0
+                        time = 0
+                        time2 = 0
+                        saper.plansza = []
+                        divId = 0
+                        container = document.createElement("div")
+                        let width = 52 * szerokosc
+                        let height = 52 * wysokosc
+                        container.style.width = width + "px"
+                        container.style.height = height + "px"
+                        container.id = "container"
+                        main.appendChild(container)
+                        for (let i = 1; i <= wysokosc; i++) {
+                            for (let j = 1; j <= szerokosc; j++) {
+                                let object = saper.Pole(i, j, "pole" + divId, divId)
+                                object.createDiv()
+                                saper.plansza.push(object)
+                                divId++
+                            }
+                        }
+                        saper.started = true
+                        saper.recordGenerate()
+                    }
+                    else
+                        alert("nieprawidłowe wartość")
+                }
+            },
+            postawBombe: function () {
+                let random = Math.floor(Math.random() * divId)
+                for (n in saper.plansza) {
+                    if (saper.plansza[n].id == random) {
+                        if (saper.plansza[n].canHaveBomb == true) {
+                            saper.plansza[n].canHaveBomb = false
+                            saper.plansza[n].haveBomb = true
+                            console.log("to pole dostalo bombe:")
+                            console.log(saper.plansza[n])
+                            for (let i = saper.plansza[n].x - 1; i <= saper.plansza[n].x + 1; i++) {
+                                for (let j = saper.plansza[n].y - 1; j <= saper.plansza[n].y + 1; j++) {
+                                    for (l in saper.plansza) {
+                                        if (saper.plansza[l].x == i && saper.plansza[l].y == j) {
+                                            saper.plansza[l].bombsAround++
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            console.log("to pole nie moze dostac bomby:")
+                            console.log(saper.plansza[n])
+                            saper.postawBombe()
+                        }
+                    }
+                }
+            },
+            lose: function () {
+                losed = true
+                console.log("przegrana")
+                for (n in saper.plansza) {
+                    if (saper.plansza[n].haveBomb == true)
+                        saper.plansza[n].odkryj()
+                }
+                let div = document.createElement("div")
+                div.id = "koniec"
+                div.innerHTML = "przegrana"
+                main.appendChild(div)
+                saper.stoped = true
+                saper.score = time
+                for (n in saper.plansza) {
+                    let divek = document.getElementById(saper.plansza[n].divId)
+                    divek.style.cursor = "default"
+                }
+            },
+            win: function () {
+                let div = document.createElement("div")
+                div.id = "koniec"
+                div.innerHTML = "wygrana"
+                main.appendChild(div)
+                saper.stoped = true
+                saper.score = time2
+                for (n in saper.plansza) {
+                    let divek = document.getElementById(saper.plansza[n].divId)
+                    divek.style.cursor = "default"
+                }
+                saper.addRekord()
+            },
+            timer: function () {
+                if (saper.stoped == false) {
+                    czasUpdate = new Date()
+                    time = parseInt((czasUpdate - czasCons) / 1000)
+                    time2 = parseInt((czasUpdate - czasCons))
+                }
+                document.getElementById("timer").innerHTML = `Czas: ${time}s`
+            },
+            addRekord: function () {
+                let nick = encodeURIComponent(prompt("podaj nick:"))
+                console.log(nick)
+                let cookies = document.cookie.split(";").map(cookie => cookie.split('='))
+                let addRecord = true
+                for (i in cookies) {
+                    if (`${cookies[i][0]}` == ` ${nick}_${wysokosc}_${szerokosc}_${ileBomb}`) {
+                        if (parseFloat(cookies[i][1]) < saper.score) {
+                            addRecord = false
+                        }
+                    }
+                }
+                if (addRecord == true) {
+                    document.cookie = `${nick}_${wysokosc}_${szerokosc}_${ileBomb}=${saper.score}; expires=Fri, 31 Dec 9999 23:59:59 GMT;secure`
+                }
+            },
+            recordGenerate: function () {
+                console.log("weszło")
+                let tabela = document.createElement("div")
+                let tabUnsorted = []
+                let values = []
+                let n = 0
+                tabela.id = "tabela"
+                main.appendChild(tabela)
+                let cookies = document.cookie.split(";").map(cookie => cookie.split('='))
+                console.log(cookies)
+                for (i in cookies) {
+                    let parametry = cookies[i][0].split("_")
+                    if (parametry[1] == wysokosc && parametry[2] == szerokosc && parametry[3] == ileBomb) {
+                        tabUnsorted[n] = []
+                        tabUnsorted[n][0] = parametry[0]
+                        tabUnsorted[n][1] = cookies[i][1]
+                        values[n] = cookies[i][1]
+                        n++
+                    }
+                }
+                let topValue = 99999999
+                let tabSorted = []
+                let m = 0
+                values.sort((a, b) => a - b)
+                for (q in values) {
+                    for (w in tabUnsorted) {
+                        if (values[q] == tabUnsorted[w][1]) {
+                            tabSorted[m] = []
+                            tabSorted[m][0] = tabUnsorted[w][0]
+                            tabSorted[m][1] = tabUnsorted[w][1]
+                            tabUnsorted.splice(w, 1);
+                            m++
+                            break
+                        }
+                    }
+                }
+                console.log(tabSorted)
+                let record0 = document.createElement("div")
+                record0.classList.add("record")
+                tabela.appendChild(record0)
+                record0.innerHTML = `${wysokosc}x${szerokosc}x${ileBomb}`
+                for (let k = 0; k <= 9; k++) {
+                    let record = document.createElement("div")
+                    record.classList.add("record")
+                    tabela.appendChild(record)
+                    if (tabSorted.length > k) {
+                        record.innerHTML = `${decodeURIComponent(tabSorted[k][0])} => ${parseInt(tabSorted[k][1] / 1000)}s`
+
+                    }
+                }
+
+            },
+            Pole: function (x, y, divId, id) {
+                return {
+                    x: x,
+                    y: y,
+                    divId: divId,
+                    id: id,
+                    haveBomb: false,
+                    canHaveBomb: true,
+                    bombsAround: 0,
+                    rendered: false,
+                    exist: true,
+                    condition: 0,
+                    odkryj: function () {
+                        let div = document.getElementById(this.divId)
+                        div.innerHTML = ""
+                        if (div.style.backgroundImage == `url("flaga.PNG")`) {
+                            ileBombZostalo++
+                            document.getElementById("licznik").innerHTML = "pozostało bomb: " + ileBombZostalo
+                        }
+                        div.style.background = "#bbbbbb"
+                        div.style.cursor = "default"
+                        if (this.haveBomb == true) {
+                            if (losed == false) {
+                                saper.lose()
+                                div.style.backgroundImage = "url(bomb.png)"
+                                div.style.webkitBackgroundSize = "cover"
+                            }
+                            else {
+                                div.style.backgroundImage = "url(pbomb.png)"
+                                div.style.webkitBackgroundSize = "cover"
+                            }
+                        }
+                        else {
+                            if (this.bombsAround != 0)
+                                div.innerHTML = this.bombsAround
+                            showed++
+                            if (showed == showToWin)
+                                saper.win()
+                            if (this.bombsAround == 1)
+                                div.style.color = "blue"
+                            if (this.bombsAround == 2)
+                                div.style.color = "green"
+                            if (this.bombsAround == 3)
+                                div.style.color = "red"
+                            if (this.bombsAround == 4)
+                                div.style.color = "darkblue"
+                            if (this.bombsAround == 5)
+                                div.style.color = "brown"
+                        }
+                    },
+                    render: function () {
+                        this.rendered = true
+                        let x = this.x
+                        let y = this.y
+                        if (this.bombsAround == 0) {
+                            for (let i = x - 1; i <= x + 1; i++) {
+                                for (let j = y - 1; j <= y + 1; j++) {
+                                    for (n in saper.plansza) {
+                                        if (saper.plansza[n].x == i && saper.plansza[n].y == j) {
+                                            if (saper.plansza[n].rendered == false && saper.plansza[n].exist == true) {
+                                                saper.plansza[n].render()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        this.odkryj()
+                    },
+                    createDiv: function () {
+                        let div = document.createElement("div")
+                        div.classList.add("pole")
+                        if (this.y == 1) {
+                            div.style.clear = "both";
+                        }
+                        div.id = this.divId
+                        div.style.backgroundImage = "url(klepa.PNG)"
+                        container.appendChild(div)
+                        //klik na divie
+                        let thisObj = this
+                        startClick = true
+                        div.onclick = function () {
+                            if (saper.stoped == false) {
+                                console.log(div.style.backgroundImage)
+                                if (div.style.backgroundImage == `url("klepa.PNG")` || div.style.backgroundImage == `url("pyt.PNG")`) {
+                                    let x = thisObj.x
+                                    let y = thisObj.y
+                                    if (startClick == true) {
+                                        document.getElementById("timer").innerHTML = `Czas: ${time}s`
+                                        czasCons = new Date();
+                                        saper.clockStarted = true
+                                        clock = setInterval(saper.timer, 0)
+                                        startClick = false
+                                        thisObj.canHaveBomb = false
+                                        for (let i = x - 1; i <= x + 1; i++) {
+                                            for (let j = y - 1; j <= y + 1; j++) {
+                                                for (n in saper.plansza) {
+                                                    if (saper.plansza[n].x == i && saper.plansza[n].y == j) {
+                                                        saper.plansza[n].canHaveBomb = false
+                                                        console.log(saper.plansza[n])
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        for (let m = 1; m <= ileBomb; m++) {
+                                            saper.postawBombe()
+                                        }
+                                    }
+                                    //klik za >1 razem
+                                    else {
+                                        console.log(thisObj)
+                                    }
+                                    thisObj.render()
+                                }
+                                else if (div.style.backgroundImage == `url("flaga.PNG")`)
+                                    alert("jesli chcesz odkryc to pole odzanacz flage")
+                                else
+                                    alert("to pole zostało już odkryte :(")
+                            }
+                        }
+                        div.oncontextmenu = (event) => {
+                            if (thisObj.rendered == true) {
+                                event.preventDefault()
+                                alert("to pole zostało już otwarte")
+                            }
+                            else {
+                                if (saper.stoped == false) {
+                                    event.preventDefault()
+                                    thisObj.condition++
+
+                                    if (thisObj.condition >= 3) {
+                                        thisObj.condition = thisObj.condition - 3
+                                    }
+                                    if (thisObj.condition == 0) {
+                                        div.style.backgroundImage = "url(klepa.PNG)"
+                                    }
+
+                                    if (thisObj.condition == 1 && ileBombZostalo > 0) {
+                                        ileBombZostalo--
+                                        div.style.backgroundImage = "url(flaga.PNG)"
+                                        document.getElementById("licznik").innerHTML = "pozostało bomb: " + ileBombZostalo
+                                    }
+                                    if (thisObj.condition == 2) {
+                                        ileBombZostalo++
+                                        div.style.backgroundImage = "url(pyt.PNG)"
+                                        document.getElementById("licznik").innerHTML = "pozostało bomb: " + ileBombZostalo
+                                    }
+                                    console.log(thisObj.condition)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        saper.startObject()
+
+    </script>
+</body>
+
+</html>
